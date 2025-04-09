@@ -13,3 +13,4 @@ class Room(Base):
     __tablename__ = "rooms"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(50), nullable=False)
+    creator_id = Column(String(30), nullable=False)
