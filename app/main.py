@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.v1 import health, users, rooms, login
+from app.api.v1 import health, users, rooms, login, ws
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Spatial Audio Backend")
@@ -8,6 +8,7 @@ app.include_router(health.router)
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(rooms.router, prefix="/rooms", tags=["Rooms"])
 app.include_router(login.router, prefix="/auth", tags=["Auth"])
+app.include_router(ws.router, prefix="/api/v1", tags=["WebSocket"])
 
 app.add_middleware(
     CORSMiddleware,
