@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spatial Audio App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Spatial Audio App</h1>
+
+  <section>
+    <h3>Create User</h3>
+    <input type="text" id="register-username" placeholder="Username">
+    <input type="password" id="register-password" placeholder="Password">
+    <button onclick="register()">Register</button>
+  </section>
+
+  <section>
+    <h3>Login</h3>
+    <input type="text" id="login-username" placeholder="Username">
+    <input type="password" id="login-password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p><b>Token:</b> <span id="token-display"></span></p>
+  </section>
+
+  <hr>
+
+  <section>
+    <h3>Create Room</h3>
+    <input type="text" id="room-name" placeholder="Room Name">
+    <button onclick="createRoom()">Create</button>
+  </section>
+
+  <section>
+    <h3>All Rooms</h3>
+    <button onclick="listRooms()">List Rooms</button>
+    <pre id="room-list"></pre>
+  </section>
+
+  <section>
+    <h3>Join / Leave Room</h3>
+    <input type="text" id="room-id" placeholder="Room ID">
+    <button onclick="joinRoom()">Join</button>
+    <button onclick="leaveRoom()">Leave</button>
+  </section>
+
+  <pre id="response" style="margin-top: 20px;"></pre>
+
+  <script>
+    let token = "";
+
+    function updateTokenDisplay() {
+      document.getElementById("token-display").innerText = token || "Not logged in";
+    }
+
+    async function register() {
+      const username = document.getElementById("register-username").value;
+      const password = document.getElementById("register-password").value;
+
+      const res = await fetch("http://localhost:8000/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function login() {
+      const username = document.getElementById("login-username").value;
+      const password = document.getElementById("login-password").value;
+
+      const res = await fetch("http://localhost:8000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `username=${username}&password=${password}`
+      });
+      const data = await res.json();
+      token = "Bearer " + data.access_token;
+      updateTokenDisplay();
+      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function createRoom() {
+      const name = document.getElementById("room-name").value;
+
+      const res = await fetch("http://localhost:8000/rooms", {
+        method: "POST",
+        headers: {
+          "Authorization": token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function listRooms() {
+      const res = await fetch("http://localhost:8000/rooms/rooms", {
+        headers: { "Authorization": token }
+      });
+      const data = await res.json();
+      document.getElementById("room-list").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function joinRoom() {
+      const roomId = document.getElementById("room-id").value;
+
+      const res = await fetch(`http://localhost:8000/rooms/${roomId}/join`, {
+        method: "POST",
+        headers: { "Authorization": token }
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+    }
+
+    async function leaveRoom() {
+      const roomId = document.getElementById("room-id").value;
+
+      const res = await fetch(`http://localhost:8000/rooms/${roomId}/leave`, {
+        method: "POST",
+        headers: { "Authorization": token }
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>

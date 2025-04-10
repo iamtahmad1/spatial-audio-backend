@@ -12,7 +12,7 @@ from app.services.auth import verify_password
 
 router = APIRouter()
 
-@router.post("/token")
+@router.post("/login", summary="User login with username and password")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = get_user_by_username(db, form_data.username)
     if not user or not verify_password(form_data.password, user.hashed_password):
