@@ -1,130 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Spatial Audio App</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat App</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 2rem; }
+    textarea, input { width: 100%; margin: 0.5rem 0; }
+    #messages { border: 1px solid #ccc; padding: 1rem; height: 200px; overflow-y: scroll; margin-top: 1rem; }
+    .hidden { display: none; }
+    #people { margin: 0; padding-left: 1rem; }
+    #people li { list-style: disc; }
+    .room-entry { display: flex; justify-content: space-between; align-items: center; margin: 0.5rem 0; }
+    .room-entry span { flex-grow: 1; }
+  </style>
 </head>
 <body>
-  <h1>Spatial Audio App</h1>
 
-  <section>
-    <h3>Create User</h3>
-    <input type="text" id="register-username" placeholder="Username">
-    <input type="password" id="register-password" placeholder="Password">
-    <button onclick="register()">Register</button>
-  </section>
+  <h2>Register</h2>
+  <input type="text" id="reg-username" placeholder="Username" />
+  <input type="password" id="reg-password" placeholder="Password" />
+  <button onclick="register()">Register</button>
 
-  <section>
-    <h3>Login</h3>
-    <input type="text" id="login-username" placeholder="Username">
-    <input type="password" id="login-password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p><b>Token:</b> <span id="token-display"></span></p>
-  </section>
+  <h2>Login</h2>
+  <input type="text" id="login-username" placeholder="Username" />
+  <input type="password" id="login-password" placeholder="Password" />
+  <button onclick="login()">Login</button>
 
-  <hr>
-
-  <section>
-    <h3>Create Room</h3>
-    <input type="text" id="room-name" placeholder="Room Name">
-    <button onclick="createRoom()">Create</button>
-  </section>
-
-  <section>
-    <h3>All Rooms</h3>
+  <div id="room-actions" class="hidden">
+    <h2>Room</h2>
+    <input type="text" id="room-name" placeholder="Room name" />
+    <button onclick="createRoom()">Create Room</button>
     <button onclick="listRooms()">List Rooms</button>
-    <pre id="room-list"></pre>
-  </section>
+    <div id="room-list"></div>
+  </div>
 
-  <section>
-    <h3>Join / Leave Room</h3>
-    <input type="text" id="room-id" placeholder="Room ID">
-    <button onclick="joinRoom()">Join</button>
-    <button onclick="leaveRoom()">Leave</button>
-  </section>
+  <div id="chat-area" class="hidden">
+    <div>
+      <h3>People in Room</h3>
+      <ul id="people"></ul>
+    </div>
+    <div>
+      <h3>Messages</h3>
+      <div id="messages" style="height: 200px; overflow-y: auto; border: 1px solid #ccc;"></div>
+    </div>
+    <div>
+      <input id="message-input" type="text" placeholder="Type your message..." />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+  
 
-  <pre id="response" style="margin-top: 20px;"></pre>
-
-  <script>
-    let token = "";
-
-    function updateTokenDisplay() {
-      document.getElementById("token-display").innerText = token || "Not logged in";
-    }
-
-    async function register() {
-      const username = document.getElementById("register-username").value;
-      const password = document.getElementById("register-password").value;
-
-      const res = await fetch("http://localhost:8000/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
-    }
-
-    async function login() {
-      const username = document.getElementById("login-username").value;
-      const password = document.getElementById("login-password").value;
-
-      const res = await fetch("http://localhost:8000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `username=${username}&password=${password}`
-      });
-      const data = await res.json();
-      token = "Bearer " + data.access_token;
-      updateTokenDisplay();
-      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
-    }
-
-    async function createRoom() {
-      const name = document.getElementById("room-name").value;
-
-      const res = await fetch("http://localhost:8000/rooms", {
-        method: "POST",
-        headers: {
-          "Authorization": token,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ name })
-      });
-      const data = await res.json();
-      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
-    }
-
-    async function listRooms() {
-      const res = await fetch("http://localhost:8000/rooms/rooms", {
-        headers: { "Authorization": token }
-      });
-      const data = await res.json();
-      document.getElementById("room-list").innerText = JSON.stringify(data, null, 2);
-    }
-
-    async function joinRoom() {
-      const roomId = document.getElementById("room-id").value;
-
-      const res = await fetch(`http://localhost:8000/rooms/${roomId}/join`, {
-        method: "POST",
-        headers: { "Authorization": token }
-      });
-      const data = await res.json();
-      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
-    }
-
-    async function leaveRoom() {
-      const roomId = document.getElementById("room-id").value;
-
-      const res = await fetch(`http://localhost:8000/rooms/${roomId}/leave`, {
-        method: "POST",
-        headers: { "Authorization": token }
-      });
-      const data = await res.json();
-      document.getElementById("response").innerText = JSON.stringify(data, null, 2);
-    }
-  </script>
+  <script src="main.js"></script>
 </body>
 </html>

@@ -7,7 +7,6 @@ from app.services.ws_auth import get_user_from_ws
 from app.services.room_connection_manager import RoomConnectionManager
 from app.db.crud import is_user_in_room
 from app.db.crud import save_message
-from app.db.crud import get_recent_messages
 from app.services.chat_service import get_recent_messages_for_ws
 import json
 
@@ -28,8 +27,9 @@ async def room_ws_endpoint(websocket: WebSocket, room_id: str, db: Session = Dep
     await manager.connect(room_id, websocket, user.username)
 
     recent_messages = get_recent_messages_for_ws(db, room_id)
+    people = list(manager.user_ids[room_id])
     await websocket.send_text(json.dumps({
-    "type": "history",
+    "type": "init",
     "messages": [
         {
             "id": str(m["id"]),
@@ -38,7 +38,8 @@ async def room_ws_endpoint(websocket: WebSocket, room_id: str, db: Session = Dep
             "timestamp": m["timestamp"]
         }
         for m in recent_messages
-    ]
+    ],
+    "people": people
 }))
 
 

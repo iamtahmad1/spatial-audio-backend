@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Room Chat</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+    #messageInput { width: 80%; }
+    #sendBtn { width: 18%; }
+  </style>
+</head>
+<body>
+  <h2>Chat Room</h2>
+
+  <div><strong>Room ID:</strong> <span id="roomDisplay"></span></div>
+
+  <div id="chat"></div>
+
+  <input type="text" id="messageInput" placeholder="Type a message..." />
+  <button id="sendBtn">Send</button>
+
+  <script src="main.js"></script>
+</body>
+</html>
