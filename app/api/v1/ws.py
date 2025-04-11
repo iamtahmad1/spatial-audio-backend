@@ -6,12 +6,15 @@ from app.db.deps import get_db
 from app.services.ws_auth import get_user_from_ws 
 from app.services.room_connection_manager import RoomConnectionManager
 from app.db.crud import is_user_in_room
+from app.db.crud import save_message
+from app.db.crud import get_recent_messages
+from app.services.chat_service import get_recent_messages_for_ws
 import json
 
 router = APIRouter()
 manager = RoomConnectionManager()
 
-@router.websocket("/ws/rooms/{room_id}")
+@router.websocket("/rooms/{room_id}")
 async def room_ws_endpoint(websocket: WebSocket, room_id: str, db: Session = Depends(get_db)):
     user = await get_user_from_ws(websocket, db)
     if not user:
@@ -22,31 +25,44 @@ async def room_ws_endpoint(websocket: WebSocket, room_id: str, db: Session = Dep
         return
 
     await websocket.accept()
-    await manager.connect(room_id, websocket)
+    await manager.connect(room_id, websocket, user.username)
 
-    # Notify others in room
-    await manager.broadcast(room_id, json.dumps({
-        "type": "join",
-        "user": user.username,
-        "message": f"{user.username} joined the room"
-    }))
+    recent_messages = get_recent_messages_for_ws(db, room_id)
+    await websocket.send_text(json.dumps({
+    "type": "history",
+    "messages": [
+        {
+            "id": str(m["id"]),
+            "user_id": str(m["user_id"]),
+            "message": m["content"],
+            "timestamp": m["timestamp"]
+        }
+        for m in recent_messages
+    ]
+}))
+
 
     try:
         while True:
             data = await websocket.receive_text()
-            parsed = json.loads(data)
+            if not data.strip():
+                continue  # Ignore empty messages
+
+            try:
+                parsed = json.loads(data)
+            except json.JSONDecodeError as e:
+                print(f"[ERROR] JSON decode failed: {e} | data: {data}", flush=True)
+                continue  # Skip this message
 
             if parsed.get("type") == "chat":
+                message = parsed.get("message", "")
+
                 await manager.broadcast(room_id, json.dumps({
                     "type": "chat",
                     "sender": user.username,
-                    "message": parsed.get("message", "")
+                    "message": message
                 }))
+                save_message(db, room_id, user.id, message)
 
     except WebSocketDisconnect:
         await manager.disconnect(room_id, websocket)
-        await manager.broadcast(room_id, json.dumps({
-            "type": "leave",
-            "user": user.username,
-            "message": f"{user.username} left the room"
-        }))

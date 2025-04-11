@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import Column, String, ForeignKey, DateTime, UniqueConstraint, Integer, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -47,3 +47,12 @@ class RoomParticipant(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "room_id", name="uix_user_room"),
     )
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    room_id = Column(String, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    content = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)

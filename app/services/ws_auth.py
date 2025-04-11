@@ -12,6 +12,7 @@ async def get_user_from_ws(websocket: WebSocket, db: Session):
         return None
 
     payload = decode_token(token)
+    print(payload)
     if not payload or "sub" not in payload:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token")
         return None
